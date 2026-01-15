@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { SearchResult, TripPlan, Coordinates } from "../types";
+import { SearchResult, TripPlan, Coordinates, Place } from "../types";
 
 // Initialize Gemini
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -141,4 +141,75 @@ export const planTripLogistics = async (start: Coordinates, end: Coordinates): P
     console.error("Logistics planning error:", error);
     return [];
   }
+};
+
+export const searchNearbyPlaces = async (center: Coordinates, category: string): Promise<Place[]> => {
+    try {
+        const prompt = `
+            Find 5 to 8 real, existing places of category "${category}" near the coordinates ${center.lat}, ${center.lng}.
+            Be as accurate as possible with latitude/longitude.
+            
+            Return JSON:
+            {
+                "places": [
+                    {
+                        "name": "Name of place",
+                        "description": "Short 1-liner description",
+                        "rating": "4.5 stars",
+                        "latitude": number,
+                        "longitude": number
+                    }
+                ]
+            }
+        `;
+
+        const response = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        places: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    name: { type: Type.STRING },
+                                    description: { type: Type.STRING },
+                                    rating: { type: Type.STRING },
+                                    latitude: { type: Type.NUMBER },
+                                    longitude: { type: Type.NUMBER }
+                                },
+                                required: ["name", "latitude", "longitude"]
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const text = response.text;
+        if(!text) return [];
+        const data = JSON.parse(text);
+
+        if (!data.places || !Array.isArray(data.places)) return [];
+
+        return data.places.map((p: any, i: number) => ({
+            id: `place-${i}-${Date.now()}`,
+            name: p.name,
+            category: category,
+            description: p.description || category,
+            rating: p.rating || "N/A",
+            coordinates: {
+                lat: p.latitude,
+                lng: p.longitude
+            }
+        }));
+
+    } catch (error) {
+        console.error("Nearby search error:", error);
+        return [];
+    }
 };

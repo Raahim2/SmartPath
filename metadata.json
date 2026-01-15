@@ -1,6 +1,6 @@
 {
-  "name": "NeonPath - A* Map Visualizer",
-  "description": "A high-performance A* pathfinding algorithm visualizer overlaid on real-world maps. Features interactive obstacle drawing, Gemini-powered location search, and a cyberpunk aesthetic.",
+  "name": "Smart Path - AI Map Visualizer",
+  "description": "A high-performance pathfinding visualizer. Features interactive obstacle drawing, Gemini-powered location search, and a modern aesthetic.",
   "requestFramePermissions": [
     "geolocation"
   ]
