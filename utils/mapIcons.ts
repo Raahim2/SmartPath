@@ -5,13 +5,17 @@ import { Plane, Train, Car, Bike, Footprints } from 'lucide-react';
 export const createStartIcon = () => L.divIcon({
   className: 'bg-transparent',
   html: `
-    <div class="relative flex items-center justify-center transform -translate-x-1/2 -translate-y-1/2">
-      <div class="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[14px] border-b-cyan-500 drop-shadow-md"></div>
-      <div class="absolute w-8 h-8 bg-cyan-400/30 rounded-full animate-ping"></div>
+    <div class="relative flex items-center justify-center group transform -translate-x-1/2 -translate-y-1/2">
+       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-500 drop-shadow-md">
+          <path d="M12 21s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 7.2c0 7.3-8 11.8-8 11.8z" fill="rgba(6,182,212,0.3)"/>
+          <circle cx="12" cy="10" r="3" fill="currentColor" />
+       </svg>
+       <div class="absolute -bottom-1 w-4 h-1 bg-cyan-500/50 blur-sm rounded-full"></div>
+       <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-cyan-900/80 text-cyan-200 text-[9px] font-bold px-1.5 rounded border border-cyan-500/30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">START</div>
     </div>
   `,
-  iconSize: [20, 20],
-  iconAnchor: [10, 10]
+  iconSize: [32, 32],
+  iconAnchor: [16, 32]
 });
 
 export const createEndIcon = () => L.divIcon({
@@ -23,6 +27,7 @@ export const createEndIcon = () => L.divIcon({
           <circle cx="12" cy="10" r="3" fill="currentColor" />
        </svg>
        <div class="absolute -bottom-1 w-4 h-1 bg-fuchsia-500/50 blur-sm rounded-full"></div>
+       <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-fuchsia-900/80 text-fuchsia-200 text-[9px] font-bold px-1.5 rounded border border-fuchsia-500/30 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">TARGET</div>
     </div>
   `,
   iconSize: [32, 32],

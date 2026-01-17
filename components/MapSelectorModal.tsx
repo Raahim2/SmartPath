@@ -1,5 +1,5 @@
 import React from 'react';
-import { Map, Globe, Leaf, Train, X, Compass } from 'lucide-react';
+import { Map, Globe, Leaf, Train, X, Compass, CloudLightning } from 'lucide-react';
 import { VisualizationMode } from '../types';
 
 interface MapSelectorModalProps {
@@ -28,18 +28,18 @@ export const MapSelectorModal: React.FC<MapSelectorModalProps> = ({ isOpen, onCl
             color: 'text-blue-500 border-blue-500'
         },
         { 
+            id: 'WEATHER', 
+            label: 'WEATHER SYSTEMS', 
+            icon: <CloudLightning size={32} />, 
+            desc: 'Global precipitation radar and local atmospheric data monitoring.',
+            color: 'text-cyan-400 border-cyan-400'
+        },
+        { 
             id: 'EXPLORE', 
             label: 'LOCAL EXPLORER', 
             icon: <Compass size={32} />, 
             desc: 'Find schools, hospitals, theaters, and other points of interest near any location.',
             color: 'text-emerald-500 border-emerald-500'
-        },
-        { 
-            id: 'TRANSIT', 
-            label: 'METRO GRID', 
-            icon: <Train size={32} />, 
-            desc: 'Subway and light rail network overlays. (Unavailable)',
-            color: 'text-cyan-500 border-cyan-500'
         }
     ];
 
@@ -69,12 +69,10 @@ export const MapSelectorModal: React.FC<MapSelectorModalProps> = ({ isOpen, onCl
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {options.map((opt) => {
                         const isSelected = currentMode === opt.id;
-                        const disabled = opt.id === 'TRANSIT';
                         
                         return (
                             <button
                                 key={opt.id}
-                                disabled={disabled}
                                 onClick={() => {
                                     onSelectMode(opt.id);
                                     onClose();
@@ -82,7 +80,7 @@ export const MapSelectorModal: React.FC<MapSelectorModalProps> = ({ isOpen, onCl
                                 className={`
                                     relative p-6 text-left border transition-all duration-300 group
                                     ${isSelected ? `bg-white/5 ${opt.color}` : 'bg-transparent border-white/10 hover:border-white/30'}
-                                    ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/5'}
+                                    hover:bg-white/5
                                 `}
                             >
                                 <div className="flex items-start gap-4">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Coordinates, Place } from '../types';
-import { MapPin, Search, Loader2, Navigation, GraduationCap, Utensils, Stethoscope, ShoppingBag, Trees, Building2, Ticket } from 'lucide-react';
+import { MapPin, Search, Loader2, Navigation, GraduationCap, Utensils, Stethoscope, ShoppingBag, Trees, Building2, Ticket, ArrowRight, Coffee } from 'lucide-react';
 
 interface ExplorePanelProps {
     startPoint: Coordinates | null;
@@ -8,12 +8,14 @@ interface ExplorePanelProps {
     nearbyPlaces: Place[];
     searchingPlaces: boolean;
     onSearchCategory: (category: string) => void;
+    onPlaceClick?: (place: Place) => void;
 }
 
 const CATEGORIES = [
     { id: 'Schools', label: 'School', icon: <GraduationCap size={16} /> },
     { id: 'Hospitals', label: 'Hospital', icon: <Stethoscope size={16} /> },
     { id: 'Restaurants', label: 'Food', icon: <Utensils size={16} /> },
+    { id: 'Cafes', label: 'Coffee', icon: <Coffee size={16} /> },
     { id: 'Theaters', label: 'Theater', icon: <Ticket size={16} /> },
     { id: 'Parks', label: 'Park', icon: <Trees size={16} /> },
     { id: 'Malls', label: 'Mall', icon: <ShoppingBag size={16} /> },
@@ -21,7 +23,7 @@ const CATEGORIES = [
 ];
 
 export const ExplorePanel: React.FC<ExplorePanelProps> = ({ 
-    startPoint, startLabel, nearbyPlaces, searchingPlaces, onSearchCategory 
+    startPoint, startLabel, nearbyPlaces, searchingPlaces, onSearchCategory, onPlaceClick 
 }) => {
     const [customQuery, setCustomQuery] = useState("");
 
@@ -115,19 +117,28 @@ export const ExplorePanel: React.FC<ExplorePanelProps> = ({
                      </div>
                      <div className="overflow-y-auto custom-scrollbar p-2 space-y-2">
                          {nearbyPlaces.map((place) => (
-                             <div key={place.id} className="bg-white/5 border border-white/5 p-2 rounded-sm hover:border-emerald-500/30 transition-colors">
+                             <button 
+                                key={place.id} 
+                                onClick={() => onPlaceClick && onPlaceClick(place)}
+                                className="w-full text-left bg-white/5 border border-white/5 p-2 rounded-sm hover:border-emerald-500/50 hover:bg-emerald-500/10 transition-colors group relative"
+                             >
                                  <div className="flex justify-between items-start">
-                                     <h4 className="text-sm font-bold text-white">{place.name}</h4>
-                                     <span className="text-[10px] font-mono text-yellow-500">{place.rating}</span>
+                                     <h4 className="text-sm font-bold text-white pr-6">{place.name}</h4>
+                                     <span className="text-[10px] font-mono text-yellow-500 flex-shrink-0">{place.rating}</span>
                                  </div>
-                                 <p className="text-[10px] text-gray-400 mt-1 line-clamp-2">{place.description}</p>
+                                 {/* Description removed as requested */}
                                  <div className="flex items-center gap-1 mt-2">
-                                     <MapPin size={10} className="text-gray-500" />
-                                     <span className="text-[9px] font-mono text-gray-500">
+                                     <MapPin size={10} className="text-gray-500 group-hover:text-emerald-400" />
+                                     <span className="text-[9px] font-mono text-gray-500 group-hover:text-emerald-200">
                                          {place.coordinates.lat.toFixed(4)}, {place.coordinates.lng.toFixed(4)}
                                      </span>
                                  </div>
-                             </div>
+                                 
+                                 {/* Hover Arrow */}
+                                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                     <ArrowRight size={16} className="text-emerald-500" />
+                                 </div>
+                             </button>
                          ))}
                      </div>
                  </div>

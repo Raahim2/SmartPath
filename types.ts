@@ -75,6 +75,21 @@ export interface Place {
     coordinates: Coordinates;
 }
 
-export type FlightRegion = 'GLOBAL' | 'NA' | 'EU' | 'AS' | 'SA' | 'AF' | 'OC';
+export interface WeatherData {
+    temperature: number;
+    windSpeed: number;
+    windDirection: number;
+    humidity: number;
+    conditionCode: number; // WMO code
+    isDay: number;
+    pressure: number;
+    locationName: string;
+    forecast: {
+        time: string[];
+        temperature: number[];
+    };
+}
 
-export type VisualizationMode = 'ROUTING' | 'FLIGHT' | 'EXPLORE' | 'TRANSIT';
+export type FlightRegion = 'GLOBAL' | 'NA' | 'EU' | 'AS' | 'SA' | 'AF' | 'OC' | 'NEARBY';
+
+export type VisualizationMode = 'ROUTING' | 'FLIGHT' | 'EXPLORE' | 'WEATHER';

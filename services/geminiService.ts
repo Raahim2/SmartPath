@@ -149,13 +149,15 @@ export const searchNearbyPlaces = async (center: Coordinates, category: string):
             Find 5 to 8 real, existing places of category "${category}" near the coordinates ${center.lat}, ${center.lng}.
             Be as accurate as possible with latitude/longitude.
             
+            Keep descriptions extremely concise (max 5 words). E.g. "Luxury 5-star hotel" or "Italian fine dining".
+            
             Return JSON:
             {
                 "places": [
                     {
                         "name": "Name of place",
-                        "description": "Short 1-liner description",
-                        "rating": "4.5 stars",
+                        "description": "Short description",
+                        "rating": "4.5",
                         "latitude": number,
                         "longitude": number
                     }

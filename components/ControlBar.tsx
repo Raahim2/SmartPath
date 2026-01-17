@@ -36,7 +36,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
     };
 
     const regions: { id: FlightRegion, label: string }[] = [
-        { id: 'GLOBAL', label: 'Global (Limit 3000)' },
+        { id: 'NEARBY', label: 'Nearby (My Area)' },
+        { id: 'GLOBAL', label: 'Global Network' },
         { id: 'NA', label: 'North America' },
         { id: 'EU', label: 'Europe' },
         { id: 'AS', label: 'Asia' },
@@ -44,6 +45,8 @@ export const ControlBar: React.FC<ControlBarProps> = ({
         { id: 'AF', label: 'Africa' },
         { id: 'OC', label: 'Oceania' },
     ];
+
+    const showSearch = mode === 'ROUTING' || mode === 'EXPLORE';
 
     return (
         <div className="absolute top-4 right-4 md:top-8 md:right-8 z-30 flex flex-col items-end gap-2 md:gap-3 pointer-events-none">
@@ -98,38 +101,36 @@ export const ControlBar: React.FC<ControlBarProps> = ({
                 </button>
             </div>
 
-            {mode === 'ROUTING' && (
-                <>
-                    {/* SEARCH */}
-                    <form onSubmit={onSearch} className="flex items-center pointer-events-auto">
-                        <div className={`${styles.panelBg} backdrop-blur-md border-r-4 ${isSearching ? 'border-fuchsia-500' : 'border-cyan-400'} px-3 py-1.5 md:px-4 md:py-2 ${styles.textPrimary} ${styles.shadow} skew-x-[-10deg] flex items-center gap-2 group focus-within:border-gray-400 transition-colors`}>
-                            <div className="skew-x-[10deg] flex items-center gap-2">
-                                {isSearching ? <Loader2 size={16} className="animate-spin text-fuchsia-400"/> : <Search size={16} className="text-cyan-400 group-focus-within:text-gray-500 transition-colors"/>}
-                                <input 
-                                    type="text" 
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="ENTER TARGET..." 
-                                    className={`bg-transparent border-none outline-none text-xs md:text-sm font-bold tracking-wider w-32 md:w-48 ${styles.inputPlaceholder} uppercase ${styles.textPrimary}`}
-                                    disabled={isSearching}
-                                />
-                            </div>
-                        </div>
-                    </form>
-
-                    {/* LOCATE ME */}
-                    <button 
-                        onClick={onLocateMe}
-                        disabled={isSearching}
-                        className={`pointer-events-auto ${styles.panelBg} backdrop-blur-md border-r-4 border-cyan-400 px-3 py-1.5 md:px-4 md:py-2 ${styles.textPrimary} ${styles.shadow} skew-x-[-10deg] hover:bg-opacity-80 transition-colors flex items-center gap-2 group`}
-                    >
+            {/* SEARCH (Conditional) */}
+            {showSearch && (
+                <form onSubmit={onSearch} className="flex items-center pointer-events-auto">
+                    <div className={`${styles.panelBg} backdrop-blur-md border-r-4 ${isSearching ? 'border-fuchsia-500' : (mode === 'EXPLORE' ? 'border-emerald-500' : 'border-cyan-400')} px-3 py-1.5 md:px-4 md:py-2 ${styles.textPrimary} ${styles.shadow} skew-x-[-10deg] flex items-center gap-2 group focus-within:border-gray-400 transition-colors`}>
                         <div className="skew-x-[10deg] flex items-center gap-2">
-                            <Crosshair size={16} className="text-cyan-400 group-hover:animate-spin-slow" />
-                            <span className="text-[10px] md:text-xs font-bold tracking-wider">LOCATE ME</span>
+                            {isSearching ? <Loader2 size={16} className="animate-spin text-fuchsia-400"/> : <Search size={16} className={`${mode === 'EXPLORE' ? 'text-emerald-500' : 'text-cyan-400'} group-focus-within:text-gray-500 transition-colors`}/>}
+                            <input 
+                                type="text" 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder={mode === 'EXPLORE' ? "SET SEARCH CENTER..." : "ENTER TARGET..."}
+                                className={`bg-transparent border-none outline-none text-xs md:text-sm font-bold tracking-wider w-32 md:w-48 ${styles.inputPlaceholder} uppercase ${styles.textPrimary}`}
+                                disabled={isSearching}
+                            />
                         </div>
-                    </button>
-                </>
+                    </div>
+                </form>
             )}
+
+            {/* LOCATE ME (Always Visible) */}
+            <button 
+                onClick={onLocateMe}
+                disabled={isSearching}
+                className={`pointer-events-auto ${styles.panelBg} backdrop-blur-md border-r-4 border-cyan-400 px-3 py-1.5 md:px-4 md:py-2 ${styles.textPrimary} ${styles.shadow} skew-x-[-10deg] hover:bg-opacity-80 transition-colors flex items-center gap-2 group`}
+            >
+                <div className="skew-x-[10deg] flex items-center gap-2">
+                    <Crosshair size={16} className="text-cyan-400 group-hover:animate-spin-slow" />
+                    <span className="text-[10px] md:text-xs font-bold tracking-wider">LOCATE ME</span>
+                </div>
+            </button>
 
             {/* HISTORY */}
             <div className="relative pointer-events-auto">

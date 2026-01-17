@@ -5,6 +5,7 @@ import { MapLayer } from './MapLayer';
 import { LogisticsPanel } from './LogisticsPanel';
 import { FlightPanel } from './FlightPanel';
 import { ExplorePanel } from './ExplorePanel';
+import { WeatherPanel } from './WeatherPanel';
 import { ControlBar } from './ControlBar';
 import { MapSelectorModal } from './MapSelectorModal';
 
@@ -13,7 +14,7 @@ interface VisualizerProps {
 }
 
 export const Visualizer: React.FC<VisualizerProps> = ({ center }) => {
-  const logic = useVisualizerLogic();
+  const logic = useVisualizerLogic(center);
   
   // Local UI State
   const [isSearching, setIsSearching] = useState(false);
@@ -28,31 +29,42 @@ export const Visualizer: React.FC<VisualizerProps> = ({ center }) => {
           logic.setSelectedFlightId(null);
           return;
       }
-
-      const coordLabel = `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
       
+      const coordLabel = `${coords.lat.toFixed(4)}, ${coords.lng.toFixed(4)}`;
+
+      if (logic.visualizationMode === 'WEATHER') {
+          logic.setStartPoint(coords);
+          logic.setStartLabel(`PIN: ${coordLabel}`);
+          logic.handleFetchWeather(coords);
+          return;
+      }
+
       // In Explore Mode, map click sets the search center
       if (logic.visualizationMode === 'EXPLORE') {
           logic.setStartPoint(coords);
           logic.setStartLabel(`PIN: ${coordLabel}`);
-          // Reset previous explore results when center changes?
-          // logic.handleExploreSearch(logic.exploreCategory || 'Restaurants'); // Optional auto-refresh
+          logic.setNearbyPlaces([]); // Reset results on new click
           return;
       }
 
-      if (logic.visualizationMode !== 'ROUTING') return;
-      
-      if (!logic.startPoint) {
-          logic.setStartPoint(coords);
-          logic.setStartLabel(`PIN: ${coordLabel}`);
-      } else if (!logic.endPoint) {
-          logic.setEndPoint(coords);
-          logic.setEndLabel(`PIN: ${coordLabel}`);
-      } else {
-          logic.setStartPoint(coords);
-          logic.setStartLabel(`PIN: ${coordLabel}`);
-          logic.setEndPoint(null);
-          logic.setEndLabel("");
+      if (logic.visualizationMode === 'ROUTING') {
+          if (!logic.startPoint) {
+              // Case 1: No start point, set start
+              logic.setStartPoint(coords);
+              logic.setStartLabel(`PIN: ${coordLabel}`);
+          } else if (!logic.endPoint) {
+              // Case 2: Start exists, End doesn't, set End
+              logic.setEndPoint(coords);
+              logic.setEndLabel(`PIN: ${coordLabel}`);
+          } else {
+              // Case 3: Both exist, reset cycle -> Set new Start, Clear End
+              logic.setStartPoint(coords);
+              logic.setStartLabel(`PIN: ${coordLabel}`);
+              logic.setEndPoint(null);
+              logic.setEndLabel("");
+              logic.setRouteOptions([]); // Clear old route data
+              logic.setVisualSegments([]);
+          }
       }
   };
 
@@ -74,10 +86,22 @@ export const Visualizer: React.FC<VisualizerProps> = ({ center }) => {
       setIsSearching(true);
       navigator.geolocation.getCurrentPosition((position) => {
           const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
-          logic.setStartPoint(coords);
-          logic.setStartLabel("CURRENT LOCATION");
-          logic.setEndPoint(null);
-          logic.setEndLabel("");
+          
+          if (logic.visualizationMode === 'EXPLORE' || logic.visualizationMode === 'WEATHER') {
+               logic.setStartPoint(coords);
+               logic.setStartLabel("CURRENT LOCATION");
+               if (logic.visualizationMode === 'WEATHER') {
+                   logic.handleFetchWeather(coords);
+               }
+          } else {
+               // Routing Mode behavior
+               logic.setStartPoint(coords);
+               logic.setStartLabel("CURRENT LOCATION");
+               logic.setEndPoint(null);
+               logic.setEndLabel("");
+               logic.setRouteOptions([]);
+          }
+          
           setMapFlyTrigger(coords);
           setIsSearching(false);
       });
@@ -93,6 +117,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ center }) => {
       titleHighlight: 
           logic.visualizationMode === 'ROUTING' ? 'text-fuchsia-500' : 
           logic.visualizationMode === 'EXPLORE' ? 'text-emerald-500' :
+          logic.visualizationMode === 'WEATHER' ? 'text-cyan-400' :
           'text-blue-500'
   };
 
@@ -114,6 +139,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ center }) => {
           onMapClick={handleMapClick}
           flyToCoords={mapFlyTrigger}
           nearbyPlaces={logic.nearbyPlaces}
+          radarTimestamp={logic.radarTimestamp}
       />
 
       {/* 2. Visual Overlays */}
@@ -124,6 +150,7 @@ export const Visualizer: React.FC<VisualizerProps> = ({ center }) => {
           <div className={`${styles.panelBg} backdrop-blur-md border-l-4 ${
               logic.visualizationMode === 'ROUTING' ? 'border-fuchsia-500' :
               logic.visualizationMode === 'EXPLORE' ? 'border-emerald-500' :
+              logic.visualizationMode === 'WEATHER' ? 'border-cyan-400' :
               'border-blue-500'
           } px-3 py-1 md:px-4 md:py-2 ${styles.textPrimary} ${styles.shadow} skew-x-[-10deg]`}>
             <div className="skew-x-[10deg]">
@@ -134,6 +161,12 @@ export const Visualizer: React.FC<VisualizerProps> = ({ center }) => {
                     <div className="text-[10px] text-blue-400 font-mono tracking-widest absolute -bottom-3 left-0 whitespace-nowrap flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                         <span>LIVE GLOBAL TRAFFIC</span>
+                    </div>
+                )}
+                {logic.visualizationMode === 'WEATHER' && (
+                    <div className="text-[10px] text-cyan-400 font-mono tracking-widest absolute -bottom-3 left-0 whitespace-nowrap flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                        <span>SATELLITE LINK ACTIVE</span>
                     </div>
                 )}
             </div>
@@ -165,6 +198,16 @@ export const Visualizer: React.FC<VisualizerProps> = ({ center }) => {
             nearbyPlaces={logic.nearbyPlaces}
             searchingPlaces={logic.searchingPlaces}
             onSearchCategory={logic.handleExploreSearch}
+            onPlaceClick={logic.handleNavigateToPlace}
+          />
+      )}
+
+      {/* Weather Panel */}
+      {logic.visualizationMode === 'WEATHER' && (
+          <WeatherPanel 
+             data={logic.weatherData}
+             label={logic.startLabel}
+             loading={logic.loadingWeather}
           />
       )}
 
@@ -196,12 +239,12 @@ export const Visualizer: React.FC<VisualizerProps> = ({ center }) => {
       />
 
       {/* 6. Footer Hint */}
-      {(logic.visualizationMode === 'ROUTING' || logic.visualizationMode === 'EXPLORE') && (
+      {(logic.visualizationMode === 'ROUTING' || logic.visualizationMode === 'EXPLORE' || logic.visualizationMode === 'WEATHER') && (
       <div className="hidden md:block absolute bottom-10 right-10 z-20 pointer-events-none opacity-70">
          <div className={`flex flex-col items-end gap-1 ${styles.textPrimary} font-bold uppercase tracking-wider text-[10px]`}>
              <div className="flex items-center gap-2">
                  <span className={`bg-white text-black px-1.5 rounded-sm`}>LMB</span>
-                 <span>SET {logic.visualizationMode === 'EXPLORE' ? 'SEARCH CENTER' : 'WAYPOINT'}</span>
+                 <span>SET {logic.visualizationMode === 'EXPLORE' ? 'SEARCH CENTER' : logic.visualizationMode === 'WEATHER' ? 'TARGET SECTOR' : 'WAYPOINT'}</span>
              </div>
          </div>
       </div>

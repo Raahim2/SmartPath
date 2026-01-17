@@ -65,8 +65,17 @@ export const getAirlineFromCallsign = (callsign: string): { code: string, info: 
     };
 };
 
-export const getRegionBounds = (region: FlightRegion) => {
+export const getRegionBounds = (region: FlightRegion, customCenter?: Coordinates) => {
     switch (region) {
+        case 'NEARBY':
+            if (!customCenter) return null;
+            // Approx 3-4 degrees box around center (~300-400km)
+            return {
+                minLat: customCenter.lat - 3,
+                maxLat: customCenter.lat + 3,
+                minLng: customCenter.lng - 3,
+                maxLng: customCenter.lng + 3
+            };
         case 'NA': return { minLat: 15, maxLat: 70, minLng: -170, maxLng: -50 };
         case 'EU': return { minLat: 35, maxLat: 70, minLng: -25, maxLng: 40 };
         case 'AS': return { minLat: -10, maxLat: 55, minLng: 60, maxLng: 150 };
@@ -77,11 +86,11 @@ export const getRegionBounds = (region: FlightRegion) => {
     }
 };
 
-export const fetchOpenSkyFlights = async (region: FlightRegion) => {
+export const fetchOpenSkyFlights = async (region: FlightRegion, userCenter?: Coordinates) => {
     try {
         let url = 'https://opensky-network.org/api/states/all';
         
-        const bounds = getRegionBounds(region);
+        const bounds = getRegionBounds(region, userCenter);
         if (bounds) {
             url += `?lamin=${bounds.minLat}&lomin=${bounds.minLng}&lamax=${bounds.maxLat}&lomax=${bounds.maxLng}`;
         }
