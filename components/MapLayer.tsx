@@ -45,7 +45,8 @@ export const MapLayer: React.FC<MapLayerProps> = ({
 
     // Styles
     const styles = {
-        tileUrl: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+        tileUrl: 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+        labelsUrl: 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}'
     };
 
     // 1. Initialize Map
@@ -61,7 +62,16 @@ export const MapLayer: React.FC<MapLayerProps> = ({
             minZoom: 2,
         }).setView([center.lat, center.lng], 15);
 
-        L.tileLayer(styles.tileUrl, { maxZoom: 20, subdomains: 'abcd', attribution: '&copy; CARTO' }).addTo(map);
+        L.tileLayer(styles.tileUrl, {
+            maxNativeZoom: 16,
+            maxZoom: 20,
+            attribution: '&copy; Esri, HERE, Garmin, OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.tileLayer(styles.labelsUrl, {
+            maxNativeZoom: 16,
+            maxZoom: 20
+        }).addTo(map);
 
         routeLayerRef.current = L.layerGroup().addTo(map);
         flightLayerRef.current = L.layerGroup().addTo(map);

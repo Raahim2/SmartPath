@@ -7,7 +7,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 export const geocodeLocation = async (query: string): Promise<SearchResult | null> => {
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-flash-lite",
       contents: `Find the geographical coordinates (latitude and longitude) for the location: "${query}". 
       Return a JSON object with 'latitude', 'longitude', and a canonical 'name'.`,
       config: {
@@ -71,7 +71,7 @@ export const planTripLogistics = async (start: Coordinates, end: Coordinates): P
     `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-flash-lite",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -166,7 +166,7 @@ export const searchNearbyPlaces = async (center: Coordinates, category: string):
         `;
 
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-3.1-flash-lite",
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
